@@ -1,26 +1,18 @@
 import express from "express";
 
-import {
-  ApiError,
-  errorHandler,
-} from "./middleware/error-handler.js";
+import { ApiError, errorHandler } from "./middleware/error-handler.js";
+import { apiRouter } from "./routes/api.routes.js";
 
 export const app = express();
 
-
 app.disable("x-powered-by");
-
 
 app.use(express.json({ limit: "16kb" }));
 
+// All application API routes.
+app.use("/api", apiRouter);
 
-app.get("/api/health", (_req, res) => {
-  res.status(200).json({
-    status: "ok",
-  });
-});
-
-
+// Unknown endpoints.
 app.use((_req, _res, next) => {
   next(
     new ApiError(
@@ -31,5 +23,5 @@ app.use((_req, _res, next) => {
   );
 });
 
-// Centralized error handling must be last.
+// Error handling must remain last.
 app.use(errorHandler);

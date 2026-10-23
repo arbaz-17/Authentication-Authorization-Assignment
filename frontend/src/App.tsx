@@ -9,6 +9,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+import { SystemStatus } from "@/features/system/SystemStatus";
+
 function HomePage() {
   const navigate = useNavigate();
 
@@ -29,9 +31,13 @@ function HomePage() {
             will be implemented in the upcoming phases.
           </p>
 
+          <SystemStatus />
+
           <Button onClick={() => navigate("/login")}>
             Open Login Page
           </Button>
+
+          
         </CardContent>
       </Card>
     </main>
