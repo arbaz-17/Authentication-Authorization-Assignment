@@ -1,18 +1,27 @@
 import express from "express";
+import cookieParser from "cookie-parser";
 
-import { ApiError, errorHandler } from "./middleware/error-handler.js";
+import {
+  ApiError,
+  errorHandler,
+} from "./middleware/error-handler.js";
+
 import { apiRouter } from "./routes/api.routes.js";
 
 export const app = express();
 
 app.disable("x-powered-by");
 
+// Parse JSON request bodies.
 app.use(express.json({ limit: "16kb" }));
 
-// All application API routes.
+// Parse incoming cookies.
+app.use(cookieParser());
+
+// Application API routes.
 app.use("/api", apiRouter);
 
-// Unknown endpoints.
+// Handle unknown endpoints.
 app.use((_req, _res, next) => {
   next(
     new ApiError(
@@ -23,5 +32,5 @@ app.use((_req, _res, next) => {
   );
 });
 
-// Error handling must remain last.
+// Centralized error handling.
 app.use(errorHandler);

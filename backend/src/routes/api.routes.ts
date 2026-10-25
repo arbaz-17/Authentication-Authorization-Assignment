@@ -1,5 +1,7 @@
 import { Router } from "express";
 
+import { authRouter } from "../modules/auth/auth.routes.js";
+
 export const apiRouter = Router();
 
 apiRouter.get("/health", (_req, res) => {
@@ -8,7 +10,9 @@ apiRouter.get("/health", (_req, res) => {
   });
 });
 
-// Future feature routers will be registered here:
-// apiRouter.use("/auth", authRouter);
+// Authentication routes
+apiRouter.use("/auth", authRouter);
+
+// Future:
 // apiRouter.use("/resources", resourceRouter);
 // apiRouter.use("/users", userRouter);
