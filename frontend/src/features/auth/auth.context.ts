@@ -1,9 +1,6 @@
 import { createContext, useContext } from "react";
 
-import type {
-  AuthUser,
-  LoginCredentials,
-} from "./auth.types";
+import type { AuthUser, LoginCredentials } from "./auth.types";
 
 export type AuthState =
   | {
@@ -18,6 +15,10 @@ export type AuthState =
       status: "unavailable";
       user: null;
       issue: "restoration" | "logout";
+    }
+  | {
+      status: "expired";
+      user: null;
     };
 
 export interface AuthContextValue {
@@ -30,16 +31,13 @@ export interface AuthContextValue {
   retryRestoration(): Promise<void>;
 }
 
-export const AuthContext =
-  createContext<AuthContextValue | null>(null);
+export const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
 
   if (!context) {
-    throw new Error(
-      "useAuth must be used within AuthProvider"
-    );
+    throw new Error("useAuth must be used within AuthProvider");
   }
 
   return context;
