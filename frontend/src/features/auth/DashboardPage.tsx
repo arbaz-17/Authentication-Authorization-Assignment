@@ -1,113 +1,185 @@
-
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Link } from "react-router";
+  CheckCircle2,
+  KeyRound,
+  LockKeyhole,
+  Mail,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
 
-import { SystemStatus } from "@/features/system/SystemStatus";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import type { AuthUser } from "./auth.types";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "./auth.context";
+import type { AuthUser, Permission } from "./auth.types";
 
 interface DashboardPageProps {
   user: AuthUser;
 }
 
-export function DashboardPage({ user }: DashboardPageProps) {
-  // ✅ Call hooks inside the component
-  const { logout } = useAuth();
+const permissionLabels: Record<Permission, string> = {
+  "resource:read": "View resources",
+  "resource:create": "Create resources",
+  "resource:update": "Edit resources",
+  "resource:delete": "Delete resources",
+  "user:manage": "View users",
+};
 
-  // ✅ Define the handler inside the component
-  async function handleLogout() {
-    try {
-      await logout();
-    } catch {
-      // AuthProvider handles the failure state.
-      // The application displays an unavailable screen.
-    }
-  }
+export function DashboardPage({ user }: DashboardPageProps) {
+  const roleLabel = user.role[0].toUpperCase() + user.role.slice(1);
 
   return (
-    <main className="mx-auto min-h-svh max-w-4xl space-y-6 p-6">
-      <header className="flex flex-wrap items-center justify-between gap-4">
+    <div className="space-y-7">
+
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">
-            Access Control Portal
+
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            Dashboard
           </h1>
 
-          <p className="text-muted-foreground">
-            Welcome, {user.email}
+          <p className="text-sm text-muted-foreground">
+            Welcome back. Here is an overview of your access.
           </p>
         </div>
 
-        <Button
-          variant="outline"
-          onClick={() => void handleLogout()}
-        >
-          Sign Out
-        </Button>
-      </header>
+      </div>
 
-      <nav
-  aria-label="Portal navigation"
-  className="flex flex-wrap gap-4 text-sm"
->
-  <Link to="/dashboard" className="underline">
-    Dashboard
-  </Link>
+      <section
+        aria-label="Account summary"
+        className="grid gap-4 sm:grid-cols-3"
+      >
+        <Card size="sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm text-muted-foreground">
+              <UserRound className="size-4 text-primary" aria-hidden="true" />
+              Account role
+            </CardTitle>
+          </CardHeader>
 
-  <Link to="/resources" className="underline">
-    Resources
-  </Link>
+          <CardContent>
+            <p className="text-xl font-semibold">{roleLabel}</p>
+            <p className="text-xs text-muted-foreground">
+              Assigned access level
+            </p>
+          </CardContent>
+        </Card>
 
-  {user.permissions.includes("user:manage") && (
-    <Link to="/users" className="underline">
-      Users
-    </Link>
-  )}
-</nav>
+        <Card size="sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm text-muted-foreground">
+              <KeyRound className="size-4 text-primary" aria-hidden="true" />
+              Permissions
+            </CardTitle>
+          </CardHeader>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Current User</CardTitle>
-        </CardHeader>
+          <CardContent>
+            <p className="text-xl font-semibold">{user.permissions.length}</p>
+            <p className="text-xs text-muted-foreground">Available actions</p>
+          </CardContent>
+        </Card>
 
-        <CardContent className="space-y-3 text-sm">
-          <p>
-            <strong>Email:</strong> {user.email}
-          </p>
+        <Card size="sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm text-muted-foreground">
+              <ShieldCheck className="size-4 text-primary" aria-hidden="true" />
+              Session
+            </CardTitle>
+          </CardHeader>
 
-          <p>
-            <strong>Role:</strong> {user.role}
-          </p>
+          <CardContent>
+            <p className="text-xl font-semibold">Active</p>
+            <p className="text-xs text-muted-foreground">
+              Authenticated in this browser
+            </p>
+          </CardContent>
+        </Card>
+      </section>
 
-          <p>
-            <strong>User ID:</strong> {user.id}
-          </p>
-        </CardContent>
-      </Card>
+      <section
+        aria-label="Account information and permissions"
+        className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]"
+      >
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Permissions</CardTitle>
-        </CardHeader>
+        <Card className="h-full">
+          <CardHeader>
+            <CardTitle>Account details</CardTitle>
 
-        <CardContent>
-          <ul className="list-inside list-disc space-y-2 text-sm">
-            {user.permissions.map((permission) => (
-              <li key={permission}>
-                {permission}
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+            <p className="text-sm text-muted-foreground">
+              Your current account information.
+            </p>
+          </CardHeader>
 
-      <SystemStatus />
-    </main>
+          <CardContent className="space-y-5">
+            <div className="flex gap-3">
+              <Mail
+                className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                aria-hidden="true"
+              />
+
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Email address</p>
+
+                <p className="mt-1 break-all text-sm font-medium">
+                  {user.email}
+                </p>
+              </div>
+            </div>
+
+            <div className="border-t border-border" />
+
+            <div className="flex gap-3">
+              <LockKeyhole
+                className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                aria-hidden="true"
+              />
+
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Account ID</p>
+
+                <p className="mt-1 break-all font-mono text-xs text-foreground-secondary">
+                  {user.id}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Your permissions */}
+        <Card className="h-full">
+          <CardHeader>
+            <CardTitle>Your permissions</CardTitle>
+
+            <p className="text-sm text-muted-foreground">
+              Actions currently granted to your account.
+            </p>
+          </CardHeader>
+
+          <CardContent>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {user.permissions.map((permission) => (
+                <div
+                  key={permission}
+                  className="flex items-start gap-2.5 rounded-lg border border-border bg-background/60 p-3"
+                >
+                  <CheckCircle2
+                    className="mt-0.5 size-4 shrink-0 text-success"
+                    aria-hidden="true"
+                  />
+
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">
+                      {permissionLabels[permission]}
+                    </p>
+
+                    <p className="mt-1 break-all font-mono text-xs text-muted-foreground">
+                      {permission}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+    </div>
   );
 }

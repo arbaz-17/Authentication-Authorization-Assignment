@@ -52,9 +52,7 @@ function getLoginErrorMessage(error: unknown): string {
 
 export function LoginPage() {
   const { login, state } = useAuth();
-  const [serverError, setServerError] = useState<string | null>(
-    null
-  );
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     register,
@@ -76,23 +74,16 @@ export function LoginPage() {
         email: values.email.trim().toLowerCase(),
         password: values.password,
       });
-
-      // AuthProvider updates the authentication state.
-      // Routing will redirect after successful login.
     } catch (error) {
       setServerError(getLoginErrorMessage(error));
     }
   }
 
-  
-
   return (
     <main className="flex min-h-svh items-center justify-center bg-muted/30 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl">
-            Sign In
-          </CardTitle>
+          <CardTitle className="text-2xl">Sign In</CardTitle>
 
           <CardDescription>
             Authentication & Authorization Module
@@ -100,17 +91,13 @@ export function LoginPage() {
         </CardHeader>
 
         {state.status === "expired" && (
-  <Alert
-    variant="destructive"
-    role="alert"
-    className="mb-4"
-  >
-    <AlertDescription>
-      Your session has expired or is no longer valid.
-      Please sign in again.
-    </AlertDescription>
-  </Alert>
-)}
+          <Alert variant="destructive" role="alert" className="mb-4">
+            <AlertDescription>
+              Your session has expired or is no longer valid. Please sign in
+              again.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <CardContent>
           <form
@@ -119,9 +106,7 @@ export function LoginPage() {
             className="space-y-4"
           >
             <div className="space-y-2">
-              <Label htmlFor="email">
-                Email Address
-              </Label>
+              <Label htmlFor="email">Email Address</Label>
 
               <Input
                 id="email"
@@ -132,9 +117,7 @@ export function LoginPage() {
                 spellCheck={false}
                 disabled={isSubmitting}
                 aria-invalid={Boolean(errors.email)}
-                aria-describedby={
-                  errors.email ? "email-error" : undefined
-                }
+                aria-describedby={errors.email ? "email-error" : undefined}
                 {...register("email")}
               />
 
@@ -150,9 +133,7 @@ export function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">
-                Password
-              </Label>
+              <Label htmlFor="password">Password</Label>
 
               <Input
                 id="password"
@@ -162,9 +143,7 @@ export function LoginPage() {
                 disabled={isSubmitting}
                 aria-invalid={Boolean(errors.password)}
                 aria-describedby={
-                  errors.password
-                    ? "password-error"
-                    : undefined
+                  errors.password ? "password-error" : undefined
                 }
                 {...register("password")}
               />
@@ -182,25 +161,17 @@ export function LoginPage() {
 
             {serverError && (
               <Alert variant="destructive" role="alert">
-                <AlertDescription>
-                  {serverError}
-                </AlertDescription>
+                <AlertDescription>{serverError}</AlertDescription>
               </Alert>
             )}
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isSubmitting}
-            >
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? "Signing in..." : "Sign In"}
             </Button>
           </form>
 
           <div className="mt-6 border-t pt-4">
-            <p className="text-sm font-medium">
-              Demo Accounts
-            </p>
+            <p className="text-sm font-medium">Demo Accounts</p>
 
             <p className="mt-2 text-xs text-muted-foreground">
               admin@example.test

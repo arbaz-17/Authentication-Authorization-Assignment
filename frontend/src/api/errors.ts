@@ -47,7 +47,6 @@ export function normalizeApiError(error: unknown): Error {
     return error;
   }
 
-  // The caller or TanStack Query cancelled the request.
   if (axios.isCancel(error)) {
     return new ApiClientError(
       "Request was cancelled.",
@@ -55,14 +54,12 @@ export function normalizeApiError(error: unknown): Error {
     );
   }
 
-  // Preserve unexpected programming errors.
   if (!axios.isAxiosError(error)) {
     return error instanceof Error
       ? error
       : new Error("An unexpected client error occurred.");
   }
 
-  // Transport error: no HTTP response was received.
   if (!error.response) {
     const timedOut =
       error.code === "ECONNABORTED" ||
@@ -76,7 +73,6 @@ export function normalizeApiError(error: unknown): Error {
     );
   }
 
-  // HTTP response received, but with an error status.
   const status = error.response.status;
   const backendError = readBackendError(error.response.data);
 

@@ -9,8 +9,6 @@ import type {
   LoginCredentials,
 } from "./auth.types";
 
-// Separate client for authentication lifecycle requests.
-// It does not inherit our authenticated-request interceptor.
 const authClient = axios.create({
   baseURL: "/api",
   timeout: 10_000,
@@ -77,7 +75,6 @@ export const authService = {
   if (!pending) {
     return;
   }
-
   try {
     await pending;
   } catch {
