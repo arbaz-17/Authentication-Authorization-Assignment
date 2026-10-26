@@ -68,6 +68,8 @@ authRouter.post(
       session.sessionExpiresAt
     );
 
+    res.set("Cache-Control", "no-store");
+
     res.status(200).json({
       accessToken: session.accessToken,
       expiresAt: session.expiresAt,
