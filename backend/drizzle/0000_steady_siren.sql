@@ -13,6 +13,7 @@ CREATE TABLE `sessions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,
 	`refresh_token_hash` text NOT NULL,
+	`previous_refresh_token_hash` text,
 	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
 	`rotated_at` integer,
 	`expires_at` integer NOT NULL,
