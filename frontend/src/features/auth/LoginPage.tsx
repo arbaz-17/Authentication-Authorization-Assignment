@@ -51,7 +51,7 @@ function getLoginErrorMessage(error: unknown): string {
 }
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { login, state } = useAuth();
   const [serverError, setServerError] = useState<string | null>(
     null
   );
@@ -84,6 +84,8 @@ export function LoginPage() {
     }
   }
 
+  
+
   return (
     <main className="flex min-h-svh items-center justify-center bg-muted/30 p-4">
       <Card className="w-full max-w-md">
@@ -96,6 +98,19 @@ export function LoginPage() {
             Authentication & Authorization Module
           </CardDescription>
         </CardHeader>
+
+        {state.status === "expired" && (
+  <Alert
+    variant="destructive"
+    role="alert"
+    className="mb-4"
+  >
+    <AlertDescription>
+      Your session has expired or is no longer valid.
+      Please sign in again.
+    </AlertDescription>
+  </Alert>
+)}
 
         <CardContent>
           <form
