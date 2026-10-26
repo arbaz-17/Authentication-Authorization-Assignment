@@ -1,87 +1,151 @@
-import { Link, Route, Routes, useNavigate } from "react-router";
+import { Link, Navigate, Route, Routes } from "react-router";
 
 import { Button } from "@/components/ui/button";
+
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  useAuth,
+} from "@/features/auth/auth.context";
 
-import { SystemStatus } from "@/features/system/SystemStatus";
+import { LoginPage } from "@/features/auth/LoginPage";
+import { DashboardPage } from "@/features/auth/DashboardPage";
 
-function HomePage() {
-  const navigate = useNavigate();
-
+function LoadingScreen() {
   return (
-    <main className="flex min-h-svh items-center justify-center bg-background p-6">
-      <Card className="w-full max-w-lg">
-        <CardHeader>
-          <CardTitle>Authentication & Authorization</CardTitle>
-          <CardDescription>
-            Week 13 — Frontend Engineering Assignment
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Frontend foundation is ready. Authentication,
-            session management, and role-based access control
-            will be implemented in the upcoming phases.
-          </p>
-
-          <SystemStatus />
-
-          <Button onClick={() => navigate("/login")}>
-            Open Login Page
-          </Button>
-
-          
-        </CardContent>
-      </Card>
+    <main
+      className="flex min-h-svh items-center justify-center p-6"
+      role="status"
+      aria-live="polite"
+    >
+      <p className="text-sm text-muted-foreground">
+        Checking authentication...
+      </p>
     </main>
   );
 }
 
-function LoginPage() {
-  return (
-    <main className="flex min-h-svh items-center justify-center bg-background p-6">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Sign In</CardTitle>
-          <CardDescription>
-            Login functionality will be implemented in Phase 03.
-          </CardDescription>
-        </CardHeader>
+function UnavailableScreen() {
+  const {
+    state,
+    retryRestoration,
+    logout,
+  } = useAuth();
 
-        <CardContent>
-          <Link to="/" className="text-sm text-primary underline">
-            Back to home
-          </Link>
-        </CardContent>
-      </Card>
+  if (state.status !== "unavailable") {
+    return null;
+  }
+
+  const logoutIssue = state.issue === "logout";
+
+  async function handleRetry() {
+    try {
+      if (logoutIssue) {
+        await logout();
+      } else {
+        await retryRestoration();
+      }
+    } catch {
+      // AuthProvider manages the resulting error state.
+    }
+  }
+
+  return (
+    <main className="flex min-h-svh flex-col items-center justify-center gap-4 p-6 text-center">
+      <h1 className="text-xl font-semibold">
+        {logoutIssue
+          ? "Logout Could Not Be Confirmed"
+          : "Session Verification Unavailable"}
+      </h1>
+
+      <p className="max-w-md text-sm text-muted-foreground">
+        {logoutIssue
+          ? "Your local access token was cleared, but server-side session revocation could not be confirmed."
+          : "The server could not verify your session. This may be a temporary connection problem."}
+      </p>
+
+      <Button onClick={() => void handleRetry()}>
+        {logoutIssue
+          ? "Retry Logout"
+          : "Retry Session Check"}
+      </Button>
     </main>
   );
+}
+
+function LoginRoute() {
+  const { state } = useAuth();
+
+  if (state.status === "authenticated") {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <LoginPage />;
+}
+
+function DashboardRoute() {
+  const { state } = useAuth();
+
+  if (state.status !== "authenticated") {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <DashboardPage user={state.user} />;
 }
 
 function NotFoundPage() {
   return (
     <main className="flex min-h-svh flex-col items-center justify-center gap-4 p-6">
-      <h1 className="text-2xl font-semibold">404 — Page Not Found</h1>
-      <Link to="/" className="text-sm text-primary underline">
-        Return Home
+      <h1 className="text-2xl font-semibold">
+        404 — Page Not Found
+      </h1>
+
+      <Link to="/" className="text-sm underline">
+        Return to application
       </Link>
     </main>
   );
 }
 
 export default function App() {
+  const { state } = useAuth();
+
+  if (state.status === "loading") {
+    return <LoadingScreen />;
+  }
+
+  if (state.status === "unavailable") {
+    return <UnavailableScreen />;
+  }
+
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="*" element={<NotFoundPage />} />
+      <Route
+        path="/"
+        element={
+          <Navigate
+            to={
+              state.status === "authenticated"
+                ? "/dashboard"
+                : "/login"
+            }
+            replace
+          />
+        }
+      />
+
+      <Route
+        path="/login"
+        element={<LoginRoute />}
+      />
+
+      <Route
+        path="/dashboard"
+        element={<DashboardRoute />}
+      />
+
+      <Route
+        path="*"
+        element={<NotFoundPage />}
+      />
     </Routes>
   );
 }

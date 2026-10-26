@@ -61,7 +61,14 @@ export const errorHandler: ErrorRequestHandler = (
     return;
   }
 
+  if (process.env.NODE_ENV === "development") {
+  console.error(
+    "Unhandled API error:",
+    error instanceof Error ? error.stack : error
+  );
+} else {
   console.error("Unhandled API error");
+}
 
   res.status(500).json({
     error: {

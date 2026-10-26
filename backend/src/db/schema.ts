@@ -65,6 +65,7 @@ export const sessions = sqliteTable(
       }),
 
     refreshTokenHash: text("refresh_token_hash").notNull(),
+    previousRefreshTokenHash: text("previous_refresh_token_hash"),
 
     createdAt: integer("created_at", {
       mode: "timestamp_ms",
