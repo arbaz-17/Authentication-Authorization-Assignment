@@ -105,6 +105,25 @@ function NotFoundPage() {
   );
 }
 
+function SessionExpiredScreen() {
+  return (
+    <main className="flex min-h-svh flex-col items-center justify-center gap-4 p-6 text-center">
+      <h1 className="text-xl font-semibold">
+        Session Ended
+      </h1>
+
+      <p className="max-w-md text-sm text-muted-foreground">
+        Your session has expired or is no longer valid.
+        Please sign in again to continue.
+      </p>
+
+      <Button asChild>
+        <Link to="/login">Sign In Again</Link>
+      </Button>
+    </main>
+  );
+}
+
 export default function App() {
   const { state } = useAuth();
 
@@ -115,6 +134,10 @@ export default function App() {
   if (state.status === "unavailable") {
     return <UnavailableScreen />;
   }
+
+  if (state.status === "expired") {
+  return <SessionExpiredScreen />;
+}
 
   return (
     <Routes>

@@ -15,12 +15,15 @@ import { authService } from "./auth.service";
 import type { LoginCredentials } from "./auth.types";
 
 import { clearAccessToken, setAccessToken } from "./token-store";
+import { configureAuthRecovery } from "@/api/client";
 
 interface AuthProviderProps {
   children: ReactNode;
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
+
+    
   const queryClient = useQueryClient();
 
   const [state, setState] = useState<AuthState>({
@@ -176,6 +179,52 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [queryClient]);
 
+  useEffect(() => {
+  return configureAuthRecovery({
+    refresh: () => authService.refresh(),
+
+    onRenewed: (session) => {
+      setState((current) => {
+        if (current.status !== "authenticated") {
+          return current;
+        }
+
+        return {
+          status: "authenticated",
+          user: session.user,
+        };
+      });
+    },
+
+    onSessionLost: (reason) => {
+      const version = ++operationVersion.current;
+
+      clearAccessToken();
+
+      void queryClient.cancelQueries().then(() => {
+        if (version !== operationVersion.current) {
+          return;
+        }
+
+        queryClient.clear();
+
+        if (reason === "expired") {
+          setState({
+            status: "expired",
+            user: null,
+          });
+        } else {
+          setState({
+            status: "unavailable",
+            user: null,
+            issue: "restoration",
+          });
+        }
+      });
+    },
+  });
+}, [queryClient]);
+
   // Restore the authenticated session on application load.
   useEffect(() => {
     const version = ++operationVersion.current;
@@ -186,6 +235,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       operationVersion.current += 1;
     };
   }, [restoreSession]);
+
+  
 
   return (
     <AuthContext.Provider
