@@ -16,15 +16,11 @@ function invalidSession(): ApiError {
   return new ApiError(
     401,
     "AUTH_SESSION_INVALID",
-    "Session is invalid or has expired."
+    "Session is invalid or has expired.",
   );
 }
 
-// Detect reuse of the immediately preceding refresh credential.
-function rejectReplay(
-  sessionId: string,
-  verifier: string
-): never {
+function rejectReplay(sessionId: string, verifier: string): never {
   const session = db
     .select({
       previousHash: sessions.previousRefreshTokenHash,
@@ -37,18 +33,14 @@ function rejectReplay(
     session?.previousHash &&
     verifyRefreshCredential(verifier, session.previousHash)
   ) {
-    // Strict policy: revoke when the previous token is reused.
     db.update(sessions)
       .set({ revokedAt: new Date() })
       .where(
         and(
           eq(sessions.id, sessionId),
-          eq(
-            sessions.previousRefreshTokenHash,
-            session.previousHash
-          ),
-          isNull(sessions.revokedAt)
-        )
+          eq(sessions.previousRefreshTokenHash, session.previousHash),
+          isNull(sessions.revokedAt),
+        ),
       )
       .run();
   }
@@ -56,9 +48,7 @@ function rejectReplay(
   throw invalidSession();
 }
 
-export async function refreshSession(
-  rawCredential: unknown
-) {
+export async function refreshSession(rawCredential: unknown) {
   const credential = parseRefreshCredential(rawCredential);
 
   if (!credential) {
@@ -88,27 +78,17 @@ export async function refreshSession(
     throw invalidSession();
   }
 
-  // Only the current credential may renew authentication.
-  if (
-    !verifyRefreshCredential(
-      credential.verifier,
-      session.refreshTokenHash
-    )
-  ) {
+  if (!verifyRefreshCredential(credential.verifier, session.refreshTokenHash)) {
     rejectReplay(credential.sessionId, credential.verifier);
   }
 
-  const replacement = createRefreshCredential(
-    session.sessionId
-  );
+  const replacement = createRefreshCredential(session.sessionId);
 
-  // Generate JWT before changing the stored refresh credential.
   const { accessToken, expiresAt } = await signAccessToken({
     userId: session.userId,
     sessionId: session.sessionId,
   });
 
-  // Compare-and-swap: only one concurrent rotation can succeed.
   const rotated = db
     .update(sessions)
     .set({
@@ -121,14 +101,13 @@ export async function refreshSession(
         eq(sessions.id, session.sessionId),
         eq(sessions.refreshTokenHash, session.refreshTokenHash),
         isNull(sessions.revokedAt),
-        gt(sessions.expiresAt, new Date())
-      )
+        gt(sessions.expiresAt, new Date()),
+      ),
     )
     .returning({ id: sessions.id })
     .get();
 
   if (!rotated) {
-    // Another operation may have rotated or revoked the session.
     rejectReplay(credential.sessionId, credential.verifier);
   }
 

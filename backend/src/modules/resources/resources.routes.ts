@@ -12,7 +12,7 @@ import { ApiError } from "../../middleware/error-handler.js";
 
 export const resourcesRouter = Router();
 
-// Every resource endpoint requires authentication.
+
 resourcesRouter.use(requireAuth);
 
 const createSchema = z

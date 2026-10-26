@@ -12,8 +12,6 @@ import { signAccessToken } from "./jwt.js";
 import { getPermissions } from "./permissions.js";
 import { createRefreshCredential } from "./refresh-token.js";
 
-// A precomputed Argon2id hash for unknown-account verification.
-// It is NOT a real account's password hash.
 const DUMMY_PASSWORD_HASH =
   "$argon2id$v=19$m=19456,t=2,p=1$" +
   "yPeyMErBqyuQ9cX6UmPh9Q$" +
@@ -23,7 +21,7 @@ export async function loginUser(
   email: string,
   password: string
 ) {
-  // Fetch only the fields required for authentication.
+
   const user = db
     .select({
       id: users.id,
@@ -35,8 +33,6 @@ export async function loginUser(
     .where(sql`lower(${users.email}) = ${email}`)
     .get();
 
-  // Perform password verification even for unknown accounts.
-  // This helps reduce account-enumeration timing differences.
   const hashToVerify =
     user?.passwordHash ?? DUMMY_PASSWORD_HASH;
 
@@ -53,7 +49,7 @@ export async function loginUser(
     );
   }
 
-  // Establish a new database-backed session.
+
   const sessionId = randomUUID();
 
   const sessionExpiresAt = new Date(
@@ -65,15 +61,12 @@ export async function loginUser(
     sessionId
   );
 
-  // Generate the JWT before inserting the session.
-  // No credentials are returned if persistence fails.
   const { accessToken, expiresAt } =
     await signAccessToken({
       userId: user.id,
       sessionId,
     });
 
-  // A single database insert is atomic.
   db.insert(sessions)
     .values({
       id: sessionId,

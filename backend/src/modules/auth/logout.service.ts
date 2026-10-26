@@ -52,7 +52,6 @@ export function revokeSession(
     return false;
   }
 
-  // Require the specific matched credential to remain stored.
   const hashCondition = matchesCurrent
     ? eq(
         sessions.refreshTokenHash,

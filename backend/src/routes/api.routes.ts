@@ -13,7 +13,7 @@ apiRouter.get("/health", (_req, res) => {
   });
 });
 
-// Authentication routes
+
 apiRouter.use("/auth", authRouter);
 
 apiRouter.use("/resources", resourcesRouter);

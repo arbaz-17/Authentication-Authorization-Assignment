@@ -23,14 +23,10 @@ const hashOptions = {
 } as const;
 
 async function seed() {
-  // Prevent development accounts from being seeded in production.
   if (env.NODE_ENV !== "development") {
-    throw new Error(
-      "Seeding is allowed only in development."
-    );
+    throw new Error("Seeding is allowed only in development.");
   }
 
-  // Validate credentials without displaying password values.
   const result = seedEnvSchema.safeParse(process.env);
 
   if (!result.success) {
@@ -38,14 +34,11 @@ async function seed() {
       .map((issue) => issue.path.join("."))
       .join(", ");
 
-    throw new Error(
-      `Invalid seed password configuration: ${fields}`
-    );
+    throw new Error(`Invalid seed password configuration: ${fields}`);
   }
 
   const passwords = result.data;
 
-  // Require separate credentials for each demo account.
   const uniquePasswords = new Set([
     passwords.SEED_ADMIN_PASSWORD,
     passwords.SEED_MANAGER_PASSWORD,
@@ -53,9 +46,7 @@ async function seed() {
   ]);
 
   if (uniquePasswords.size !== 3) {
-    throw new Error(
-      "Each demo account must have a different password."
-    );
+    throw new Error("Each demo account must have a different password.");
   }
 
   const adminId = randomUUID();
@@ -86,23 +77,17 @@ async function seed() {
     },
   ];
 
-  // Hash passwords before opening the database transaction.
   const hashedAccounts = await Promise.all(
     accounts.map(async ({ id, email, role, password }) => ({
       id,
       email,
       role,
       passwordHash: await argon2.hash(password, hashOptions),
-    }))
+    })),
   );
 
-  // All inserts succeed together, or none are committed.
   db.transaction((tx) => {
-    const existingUser = tx
-      .select({ id: users.id })
-      .from(users)
-      .limit(1)
-      .get();
+    const existingUser = tx.select({ id: users.id }).from(users).limit(1).get();
 
     const existingResource = tx
       .select({ id: resources.id })
@@ -113,7 +98,7 @@ async function seed() {
     if (existingUser || existingResource) {
       throw new Error(
         "Seeding stopped: database already contains users " +
-        "or resources. Existing records were not changed."
+          "or resources. Existing records were not changed.",
       );
     }
 
@@ -123,27 +108,23 @@ async function seed() {
       .values([
         {
           title: "Operations Handbook",
-          description:
-            "General operational documentation and procedures.",
+          description: "General operational documentation and procedures.",
           createdBy: adminId,
         },
         {
           title: "Project Guidelines",
-          description:
-            "Project standards and collaboration guidelines.",
+          description: "Project standards and collaboration guidelines.",
           createdBy: adminId,
         },
         {
           title: "Team Resources",
-          description:
-            "Shared resources for team members.",
+          description: "Shared resources for team members.",
           createdBy: adminId,
         },
       ])
       .run();
   });
 
-  // Verify the saved credentials without exposing hash values.
   const savedUsers = db
     .select({
       email: users.email,
@@ -154,9 +135,7 @@ async function seed() {
     .all();
 
   for (const account of accounts) {
-    const saved = savedUsers.find(
-      (user) => user.email === account.email
-    );
+    const saved = savedUsers.find((user) => user.email === account.email);
 
     if (
       !saved ||
@@ -164,9 +143,7 @@ async function seed() {
       !saved.passwordHash.startsWith("$argon2id$") ||
       !(await argon2.verify(saved.passwordHash, account.password))
     ) {
-      throw new Error(
-        `Seed verification failed for ${account.email}`
-      );
+      throw new Error(`Seed verification failed for ${account.email}`);
     }
   }
 
@@ -191,23 +168,19 @@ async function seed() {
     savedUsers.map(({ email, role }) => ({
       email,
       role,
-    }))
+    })),
   );
 
-  console.log(
-    `Verified ${savedUsers.length} Argon2id password hashes.`
-  );
+  console.log(`Verified ${savedUsers.length} Argon2id password hashes.`);
 
-  console.log(
-    `Verified ${savedResources.length} demo resources.`
-  );
+  console.log(`Verified ${savedResources.length} demo resources.`);
 }
 
 seed()
   .catch((error: unknown) => {
     console.error(
       "Seed failed:",
-      error instanceof Error ? error.message : "Unknown error"
+      error instanceof Error ? error.message : "Unknown error",
     );
 
     process.exitCode = 1;

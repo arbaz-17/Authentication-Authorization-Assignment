@@ -16,7 +16,6 @@ export interface AuthenticatedUser {
   permissions: Permission[];
 }
 
-// Extend Express response-local types.
 declare global {
   namespace Express {
     interface Locals {
@@ -32,7 +31,6 @@ export const requireAuth: RequestHandler = async (
 ) => {
   const authorization = req.get("Authorization");
 
-  // Require exactly one Bearer credential.
   const match = /^Bearer ([^\s]+)$/i.exec(
     authorization ?? ""
   );
@@ -47,11 +45,10 @@ export const requireAuth: RequestHandler = async (
     );
   }
 
-  // Verify JWT signature, expiry and claims.
+
   const { userId, sessionId } =
     await verifyAccessToken(accessToken);
 
-  // Validate the current server-side session and user.
   const user = db
     .select({
       id: users.id,
@@ -81,7 +78,6 @@ export const requireAuth: RequestHandler = async (
     );
   }
 
-  // Obtain current permissions from the database role.
   res.locals.auth = {
     id: user.id,
     email: user.email,
