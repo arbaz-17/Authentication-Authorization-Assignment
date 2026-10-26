@@ -2,12 +2,15 @@ import { Link, Navigate, Route, Routes } from "react-router";
 
 import { Button } from "@/components/ui/button";
 
-import {
-  useAuth,
-} from "@/features/auth/auth.context";
+import { useAuth } from "@/features/auth/auth.context";
 
 import { LoginPage } from "@/features/auth/LoginPage";
 import { DashboardPage } from "@/features/auth/DashboardPage";
+import { RequireAuth, RequirePermission } from "@/routes/RouteGuards";
+import { ResourcesPage } from "@/features/resources/ResourcesPage";
+import { UsersPage } from "@/features/users/UsersPage";
+
+import { ForbiddenPage } from "@/pages/ForbiddenPage";
 
 function LoadingScreen() {
   return (
@@ -24,11 +27,7 @@ function LoadingScreen() {
 }
 
 function UnavailableScreen() {
-  const {
-    state,
-    retryRestoration,
-    logout,
-  } = useAuth();
+  const { state, retryRestoration, logout } = useAuth();
 
   if (state.status !== "unavailable") {
     return null;
@@ -63,9 +62,7 @@ function UnavailableScreen() {
       </p>
 
       <Button onClick={() => void handleRetry()}>
-        {logoutIssue
-          ? "Retry Logout"
-          : "Retry Session Check"}
+        {logoutIssue ? "Retry Logout" : "Retry Session Check"}
       </Button>
     </main>
   );
@@ -94,32 +91,11 @@ function DashboardRoute() {
 function NotFoundPage() {
   return (
     <main className="flex min-h-svh flex-col items-center justify-center gap-4 p-6">
-      <h1 className="text-2xl font-semibold">
-        404 — Page Not Found
-      </h1>
+      <h1 className="text-2xl font-semibold">404 — Page Not Found</h1>
 
       <Link to="/" className="text-sm underline">
         Return to application
       </Link>
-    </main>
-  );
-}
-
-function SessionExpiredScreen() {
-  return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-4 p-6 text-center">
-      <h1 className="text-xl font-semibold">
-        Session Ended
-      </h1>
-
-      <p className="max-w-md text-sm text-muted-foreground">
-        Your session has expired or is no longer valid.
-        Please sign in again to continue.
-      </p>
-
-      <Button asChild>
-        <Link to="/login">Sign In Again</Link>
-      </Button>
     </main>
   );
 }
@@ -135,40 +111,35 @@ export default function App() {
     return <UnavailableScreen />;
   }
 
-  if (state.status === "expired") {
-  return <SessionExpiredScreen />;
-}
-
   return (
     <Routes>
       <Route
         path="/"
         element={
           <Navigate
-            to={
-              state.status === "authenticated"
-                ? "/dashboard"
-                : "/login"
-            }
+            to={state.status === "authenticated" ? "/dashboard" : "/login"}
             replace
           />
         }
       />
 
-      <Route
-        path="/login"
-        element={<LoginRoute />}
-      />
+      <Route path="/login" element={<LoginRoute />} />
 
-      <Route
-        path="/dashboard"
-        element={<DashboardRoute />}
-      />
+      <Route element={<RequireAuth />}>
+        <Route path="/dashboard" element={<DashboardRoute />} />
 
-      <Route
-        path="*"
-        element={<NotFoundPage />}
-      />
+        <Route path="/forbidden" element={<ForbiddenPage />} />
+
+        <Route element={<RequirePermission permission="resource:read" />}>
+          <Route path="/resources" element={<ResourcesPage />} />
+        </Route>
+
+        <Route element={<RequirePermission permission="user:manage" />}>
+          <Route path="/users" element={<UsersPage />} />
+        </Route>
+      </Route>
+
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

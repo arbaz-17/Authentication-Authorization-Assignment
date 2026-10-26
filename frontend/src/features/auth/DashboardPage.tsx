@@ -5,6 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Link } from "react-router";
 
 import { SystemStatus } from "@/features/system/SystemStatus";
 
@@ -50,6 +51,25 @@ export function DashboardPage({ user }: DashboardPageProps) {
           Sign Out
         </Button>
       </header>
+
+      <nav
+  aria-label="Portal navigation"
+  className="flex flex-wrap gap-4 text-sm"
+>
+  <Link to="/dashboard" className="underline">
+    Dashboard
+  </Link>
+
+  <Link to="/resources" className="underline">
+    Resources
+  </Link>
+
+  {user.permissions.includes("user:manage") && (
+    <Link to="/users" className="underline">
+      Users
+    </Link>
+  )}
+</nav>
 
       <Card>
         <CardHeader>
