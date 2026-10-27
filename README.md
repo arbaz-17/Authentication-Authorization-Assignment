@@ -2,7 +2,7 @@
 
 ## Overview
 
-A full-stack **Authentication & Authorization Module** developed as part of the **Week 13 Frontend Engineering Internship Assignment at OptimusFox**.
+A full-stack **Authentication & Authorization Module** developed as part of the **Frontend Engineering Internship Assignment at OptimusFox**.
 
 The application demonstrates secure user authentication, persistent sessions, JWT access-token refresh, protected routes, and Role-Based Access Control (RBAC).
 
