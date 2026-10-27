@@ -30,7 +30,6 @@ async function authPost<T>(
   }
 }
 
-// Coordinate session restoration inside this JS runtime.
 let restorationPromise:
   | Promise<AuthSessionResponse>
   | null = null;

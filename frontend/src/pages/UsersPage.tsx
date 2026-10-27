@@ -11,7 +11,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 
-import { usersService } from "./users.service";
+import { usersService } from "../features/users/users.service";
 
 export function UsersPage() {
   const usersQuery = useQuery({
@@ -22,9 +22,7 @@ export function UsersPage() {
   return (
     <section className="space-y-6">
       <header className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-          Administration
-        </p>
+
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
           Users
         </h1>

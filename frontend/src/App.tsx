@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { AppLayout } from "@/components/layout/AppLayout";
 
 import { useAuth } from "@/features/auth/auth.context";
-import { LoginPage } from "@/features/auth/LoginPage";
-import { DashboardPage } from "@/features/auth/DashboardPage";
-import { ResourcesPage } from "@/features/resources/ResourcesPage";
-import { UsersPage } from "@/features/users/UsersPage";
+import { LoginPage } from "@/pages/LoginPage";
+import { DashboardPage } from "@/pages/DashboardPage";
+import { ResourcesPage } from "@/pages/ResourcesPage";
+import { UsersPage } from "@/pages/UsersPage";
 import { RequireAuth, RequirePermission } from "@/routes/RouteGuards";
 import { ForbiddenPage } from "@/pages/ForbiddenPage";
 

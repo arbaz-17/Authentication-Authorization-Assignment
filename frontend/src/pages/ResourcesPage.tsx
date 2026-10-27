@@ -28,7 +28,7 @@ import {
   resourcesService,
   type Resource,
   type ResourceInput,
-} from "./resources.service";
+} from "../features/resources/resources.service";
 
 function errorMessage(error: unknown): string {
   return error instanceof Error
@@ -122,9 +122,6 @@ export function ResourcesPage() {
     <section className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-            Workspace
-          </p>
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
             Resources
           </h1>

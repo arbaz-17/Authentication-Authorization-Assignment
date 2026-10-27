@@ -9,7 +9,7 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import type { AuthUser, Permission } from "./auth.types";
+import type { AuthUser, Permission } from "@/features/auth/auth.types";
 
 interface DashboardPageProps {
   user: AuthUser;
