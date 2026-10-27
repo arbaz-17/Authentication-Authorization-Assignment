@@ -9,6 +9,10 @@ import { resources, users } from "./schema.js";
 
 type Role = "admin" | "manager" | "viewer";
 
+const demoMode =
+  env.NODE_ENV === "production" &&
+  process.env.DEMO_SEED_ON_START === "true";
+
 const seedEnvSchema = z.object({
   SEED_ADMIN_PASSWORD: z.string().min(5),
   SEED_MANAGER_PASSWORD: z.string().min(5),
@@ -23,8 +27,64 @@ const hashOptions = {
 } as const;
 
 async function seed() {
-  if (env.NODE_ENV !== "development") {
-    throw new Error("Seeding is allowed only in development.");
+  // Production seeding is allowed only for the
+  // explicitly enabled disposable demo deployment.
+  if (env.NODE_ENV !== "development" && !demoMode) {
+    throw new Error(
+      "Seeding is allowed only in development or explicit demo mode.",
+    );
+  }
+
+  // Check existing data before generating password hashes.
+  const existingUsers = db
+    .select({
+      email: users.email,
+      role: users.role,
+    })
+    .from(users)
+    .all();
+
+  const existingResource = db
+    .select({ id: resources.id })
+    .from(resources)
+    .limit(1)
+    .get();
+
+  if (existingUsers.length > 0 || existingResource) {
+    if (demoMode) {
+      const expectedAccounts = [
+        { email: "admin@example.test", role: "admin" },
+        { email: "manager@example.test", role: "manager" },
+        { email: "viewer@example.test", role: "viewer" },
+      ] as const;
+
+      const demoAccountsExist = expectedAccounts.every(
+        (account) =>
+          existingUsers.some(
+            (user) =>
+              user.email === account.email &&
+              user.role === account.role,
+          ),
+      );
+
+      if (demoAccountsExist && existingResource) {
+        console.log(
+          "Demo database already initialized. Skipping seed.",
+        );
+
+        return;
+      }
+
+      throw new Error(
+        "Database contains incomplete demo data. " +
+          "Existing records were not changed.",
+      );
+    }
+
+    throw new Error(
+      "Seeding stopped: database already contains users " +
+        "or resources. Existing records were not changed.",
+    );
   }
 
   const result = seedEnvSchema.safeParse(process.env);
@@ -34,7 +94,9 @@ async function seed() {
       .map((issue) => issue.path.join("."))
       .join(", ");
 
-    throw new Error(`Invalid seed password configuration: ${fields}`);
+    throw new Error(
+      `Invalid seed password configuration: ${fields}`,
+    );
   }
 
   const passwords = result.data;
@@ -46,7 +108,9 @@ async function seed() {
   ]);
 
   if (uniquePasswords.size !== 3) {
-    throw new Error("Each demo account must have a different password.");
+    throw new Error(
+      "Each demo account must have a different password.",
+    );
   }
 
   const adminId = randomUUID();
@@ -82,12 +146,20 @@ async function seed() {
       id,
       email,
       role,
-      passwordHash: await argon2.hash(password, hashOptions),
+      passwordHash: await argon2.hash(
+        password,
+        hashOptions,
+      ),
     })),
   );
 
+  // Insert all demo data in a single transaction.
   db.transaction((tx) => {
-    const existingUser = tx.select({ id: users.id }).from(users).limit(1).get();
+    const existingUser = tx
+      .select({ id: users.id })
+      .from(users)
+      .limit(1)
+      .get();
 
     const existingResource = tx
       .select({ id: resources.id })
@@ -97,8 +169,7 @@ async function seed() {
 
     if (existingUser || existingResource) {
       throw new Error(
-        "Seeding stopped: database already contains users " +
-          "or resources. Existing records were not changed.",
+        "Database changed during seeding. No records were overwritten.",
       );
     }
 
@@ -108,12 +179,14 @@ async function seed() {
       .values([
         {
           title: "Operations Handbook",
-          description: "General operational documentation and procedures.",
+          description:
+            "General operational documentation and procedures.",
           createdBy: adminId,
         },
         {
           title: "Project Guidelines",
-          description: "Project standards and collaboration guidelines.",
+          description:
+            "Project standards and collaboration guidelines.",
           createdBy: adminId,
         },
         {
@@ -125,6 +198,7 @@ async function seed() {
       .run();
   });
 
+  // Verify saved password hashes.
   const savedUsers = db
     .select({
       email: users.email,
@@ -135,18 +209,26 @@ async function seed() {
     .all();
 
   for (const account of accounts) {
-    const saved = savedUsers.find((user) => user.email === account.email);
+    const saved = savedUsers.find(
+      (user) => user.email === account.email,
+    );
 
     if (
       !saved ||
       saved.role !== account.role ||
       !saved.passwordHash.startsWith("$argon2id$") ||
-      !(await argon2.verify(saved.passwordHash, account.password))
+      !(await argon2.verify(
+        saved.passwordHash,
+        account.password,
+      ))
     ) {
-      throw new Error(`Seed verification failed for ${account.email}`);
+      throw new Error(
+        `Seed verification failed for ${account.email}`,
+      );
     }
   }
 
+  // Verify saved resources.
   const savedResources = db
     .select({
       title: resources.title,
@@ -157,12 +239,20 @@ async function seed() {
 
   if (
     savedResources.length !== 3 ||
-    savedResources.some((resource) => resource.createdBy !== adminId)
+    savedResources.some(
+      (resource) => resource.createdBy !== adminId,
+    )
   ) {
-    throw new Error("Resource seed verification failed.");
+    throw new Error(
+      "Resource seed verification failed.",
+    );
   }
 
-  console.log("Development seed completed successfully.");
+  console.log(
+    demoMode
+      ? "Production demo seed completed successfully."
+      : "Development seed completed successfully.",
+  );
 
   console.table(
     savedUsers.map(({ email, role }) => ({
@@ -171,16 +261,22 @@ async function seed() {
     })),
   );
 
-  console.log(`Verified ${savedUsers.length} Argon2id password hashes.`);
+  console.log(
+    `Verified ${savedUsers.length} Argon2id password hashes.`,
+  );
 
-  console.log(`Verified ${savedResources.length} demo resources.`);
+  console.log(
+    `Verified ${savedResources.length} demo resources.`,
+  );
 }
 
 seed()
   .catch((error: unknown) => {
     console.error(
       "Seed failed:",
-      error instanceof Error ? error.message : "Unknown error",
+      error instanceof Error
+        ? error.message
+        : "Unknown error",
     );
 
     process.exitCode = 1;
