@@ -121,7 +121,7 @@ export function LoginPage() {
           </h1>
 
           <p className="mx-auto max-w-md text-sm leading-relaxed opacity-80 sm:text-base">
-            A secure access control portal demonstrating authentication, session
+            A secure access control dashboard demonstrating authentication, session
             management, and role-based authorization.
           </p>
         </header>
