@@ -40,7 +40,7 @@ export function configureAuthRecovery(
 
 export const apiClient = axios.create({
   baseURL: "/api",
-  timeout: 10_000,
+  timeout: 90_000,
 });
 
 apiClient.interceptors.request.use((config: RetryConfig) => {

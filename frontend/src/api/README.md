@@ -18,7 +18,7 @@ It provides a consistent way to communicate with the Express backend, attach acc
 The shared `apiClient` uses the following configuration:
 
 - **Base URL:** `/api`
-- **Timeout:** 10 seconds
+- **Timeout:** 90 seconds
 - **Authentication:** JWT access token attached through the `Authorization: Bearer` header
 - **Response handling:** Centralized `401` recovery and request retries
 
