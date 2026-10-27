@@ -55,9 +55,7 @@
       "indexes": {
         "resources_created_by_idx": {
           "name": "resources_created_by_idx",
-          "columns": [
-            "created_by"
-          ],
+          "columns": ["created_by"],
           "isUnique": false
         }
       },
@@ -66,12 +64,8 @@
           "name": "resources_created_by_users_id_fk",
           "tableFrom": "resources",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -102,6 +96,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false
+        },
+        "previous_refresh_token_hash": {
+          "name": "previous_refresh_token_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "created_at": {
@@ -137,9 +138,7 @@
       "indexes": {
         "sessions_user_id_idx": {
           "name": "sessions_user_id_idx",
-          "columns": [
-            "user_id"
-          ],
+          "columns": ["user_id"],
           "isUnique": false
         }
       },
@@ -148,12 +147,8 @@
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -214,9 +209,7 @@
       "indexes": {
         "users_email_unique": {
           "name": "users_email_unique",
-          "columns": [
-            "lower(\"email\")"
-          ],
+          "columns": ["lower(\"email\")"],
           "isUnique": true
         }
       },
