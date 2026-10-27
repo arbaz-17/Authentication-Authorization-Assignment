@@ -133,4 +133,4 @@ Frontend route guards improve usability but are **not a substitute for backend a
 
 - **[Frontend README](frontend/README.md)** — React architecture, routing, state management, and UI.
 - **[Backend README](backend/README.md)** — Express APIs, database, JWTs, sessions, and security implementation.
-- Additional README files inside frontend feature folders explain individual modules.
+- **[Security Review](docs/README.md)**
