@@ -9,8 +9,6 @@ import type {
   LoginCredentials,
 } from "./auth.types";
 
-// Separate client for authentication lifecycle requests.
-// It does not inherit our authenticated-request interceptor.
 const authClient = axios.create({
   baseURL: "/api",
   timeout: 10_000,
@@ -32,7 +30,6 @@ async function authPost<T>(
   }
 }
 
-// Coordinate session restoration inside this JS runtime.
 let restorationPromise:
   | Promise<AuthSessionResponse>
   | null = null;
@@ -77,7 +74,6 @@ export const authService = {
   if (!pending) {
     return;
   }
-
   try {
     await pending;
   } catch {

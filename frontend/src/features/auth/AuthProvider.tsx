@@ -22,8 +22,6 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-
-    
   const queryClient = useQueryClient();
 
   const [state, setState] = useState<AuthState>({
@@ -31,11 +29,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     user: null,
   });
 
-  // Invalidates outdated authentication operations.
   const operationVersion = useRef(0);
 
-  // Restores the session without synchronously
-  // updating React state.
   const restoreSession = useCallback(async (version: number) => {
     clearAccessToken();
 
@@ -74,7 +69,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []);
 
-  // Used when the user explicitly retries restoration.
   const retryRestoration = useCallback(async () => {
     const version = ++operationVersion.current;
 
@@ -93,8 +87,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       clearAccessToken();
 
       try {
-        // Prevent a pending refresh response from
-        // overwriting the cookie of a new login.
         await authService.waitForPendingRefresh();
 
         const session = await authService.login(credentials);
@@ -137,12 +129,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     clearAccessToken();
 
-    // Cancel requests and remove user-specific data.
     await queryClient.cancelQueries();
     queryClient.clear();
 
     try {
-      // Allow an in-flight refresh to finish first.
       await authService.waitForPendingRefresh();
 
       await authService.logout();
@@ -168,7 +158,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      // Do not claim backend revocation succeeded.
       setState({
         status: "unavailable",
         user: null,
@@ -180,50 +169,50 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [queryClient]);
 
   useEffect(() => {
-  return configureAuthRecovery({
-    refresh: () => authService.refresh(),
+    return configureAuthRecovery({
+      refresh: () => authService.refresh(),
 
-    onRenewed: (session) => {
-      setState((current) => {
-        if (current.status !== "authenticated") {
-          return current;
-        }
+      onRenewed: (session) => {
+        setState((current) => {
+          if (current.status !== "authenticated") {
+            return current;
+          }
 
-        return {
-          status: "authenticated",
-          user: session.user,
-        };
-      });
-    },
+          return {
+            status: "authenticated",
+            user: session.user,
+          };
+        });
+      },
 
-    onSessionLost: (reason) => {
-      const version = ++operationVersion.current;
+      onSessionLost: (reason) => {
+        const version = ++operationVersion.current;
 
-      clearAccessToken();
+        clearAccessToken();
 
-      void queryClient.cancelQueries().then(() => {
-        if (version !== operationVersion.current) {
-          return;
-        }
+        void queryClient.cancelQueries().then(() => {
+          if (version !== operationVersion.current) {
+            return;
+          }
 
-        queryClient.clear();
+          queryClient.clear();
 
-        if (reason === "expired") {
-          setState({
-            status: "expired",
-            user: null,
-          });
-        } else {
-          setState({
-            status: "unavailable",
-            user: null,
-            issue: "restoration",
-          });
-        }
-      });
-    },
-  });
-}, [queryClient]);
+          if (reason === "expired") {
+            setState({
+              status: "expired",
+              user: null,
+            });
+          } else {
+            setState({
+              status: "unavailable",
+              user: null,
+              issue: "restoration",
+            });
+          }
+        });
+      },
+    });
+  }, [queryClient]);
 
   // Restore the authenticated session on application load.
   useEffect(() => {
@@ -235,8 +224,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       operationVersion.current += 1;
     };
   }, [restoreSession]);
-
-  
 
   return (
     <AuthContext.Provider

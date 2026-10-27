@@ -3,14 +3,9 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from "axios";
 
-import {
-  ApiClientError,
-  normalizeApiError,
-} from "./errors";
+import { ApiClientError, normalizeApiError } from "./errors";
 
-import type {
-  AuthSessionResponse,
-} from "@/features/auth/auth.types";
+import type { AuthSessionResponse } from "@/features/auth/auth.types";
 
 import {
   getAccessToken,
@@ -26,15 +21,13 @@ interface RetryConfig extends InternalAxiosRequestConfig {
 interface AuthRecoveryHandlers {
   refresh: () => Promise<AuthSessionResponse>;
   onRenewed: (session: AuthSessionResponse) => void;
-  onSessionLost: (
-    reason: "expired" | "unavailable"
-  ) => void;
+  onSessionLost: (reason: "expired" | "unavailable") => void;
 }
 
 let recoveryHandlers: AuthRecoveryHandlers | null = null;
 
 export function configureAuthRecovery(
-  handlers: AuthRecoveryHandlers
+  handlers: AuthRecoveryHandlers,
 ): () => void {
   recoveryHandlers = handlers;
 
@@ -50,17 +43,13 @@ export const apiClient = axios.create({
   timeout: 10_000,
 });
 
-// Attach the access token and track the auth lifecycle.
 apiClient.interceptors.request.use((config: RetryConfig) => {
   config._authEpoch ??= getAuthEpoch();
 
   const token = getAccessToken();
 
   if (token) {
-    config.headers.set(
-      "Authorization",
-      `Bearer ${token}`
-    );
+    config.headers.set("Authorization", `Bearer ${token}`);
   } else {
     config.headers.delete("Authorization");
   }
@@ -68,15 +57,11 @@ apiClient.interceptors.request.use((config: RetryConfig) => {
   return config;
 });
 
-// Recover from expired access tokens.
 apiClient.interceptors.response.use(
   (response) => response,
 
   async (error: unknown) => {
-    if (
-      !axios.isAxiosError(error) ||
-      error.response?.status !== 401
-    ) {
+    if (!axios.isAxiosError(error) || error.response?.status !== 401) {
       return Promise.reject(error);
     }
 
@@ -84,8 +69,6 @@ apiClient.interceptors.response.use(
     const handlers = recoveryHandlers;
     const currentToken = getAccessToken();
 
-    // Never refresh unauthenticated, cancelled,
-    // already-retried, or outdated requests.
     if (
       !original ||
       original._retry ||
@@ -101,27 +84,19 @@ apiClient.interceptors.response.use(
 
     const requestEpoch = getAuthEpoch();
 
-    // Another request might already have renewed the token.
-    if (
-      original.headers.get("Authorization") !==
-      `Bearer ${currentToken}`
-    ) {
+    if (original.headers.get("Authorization") !== `Bearer ${currentToken}`) {
       return apiClient.request(original);
     }
 
     let session: AuthSessionResponse;
 
     try {
-      // Uses the existing single-flight refresh Promise.
       session = await handlers.refresh();
     } catch (refreshError) {
       if (getAuthEpoch() === requestEpoch) {
         const normalized = normalizeApiError(refreshError);
 
-        if (
-          normalized instanceof ApiClientError &&
-          normalized.status === 401
-        ) {
+        if (normalized instanceof ApiClientError && normalized.status === 401) {
           handlers.onSessionLost("expired");
         } else {
           handlers.onSessionLost("unavailable");
@@ -131,7 +106,6 @@ apiClient.interceptors.response.use(
       return Promise.reject(refreshError);
     }
 
-    // Logout or a newer login may have occurred.
     if (getAuthEpoch() !== requestEpoch) {
       return Promise.reject(error);
     }
@@ -139,7 +113,6 @@ apiClient.interceptors.response.use(
     setAccessToken(session.accessToken);
     handlers.onRenewed(session);
 
-    // Only automatically replay safe, read-only requests.
     const method = (original.method ?? "get").toLowerCase();
 
     if (!["get", "head", "options"].includes(method)) {
@@ -147,19 +120,16 @@ apiClient.interceptors.response.use(
         new ApiClientError(
           "Session renewed. Please retry this action.",
           "ACTION_RETRY_REQUIRED",
-          401
-        )
+          401,
+        ),
       );
     }
 
-    // The request interceptor attaches the renewed JWT.
     return apiClient.request(original);
-  }
+  },
 );
 
-export async function apiRequest<T>(
-  config: AxiosRequestConfig
-): Promise<T> {
+export async function apiRequest<T>(config: AxiosRequestConfig): Promise<T> {
   try {
     const response = await apiClient.request<T>(config);
     return response.data;

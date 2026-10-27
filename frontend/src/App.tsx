@@ -1,15 +1,14 @@
 import { Link, Navigate, Route, Routes } from "react-router";
 
 import { Button } from "@/components/ui/button";
+import { AppLayout } from "@/components/layout/AppLayout";
 
 import { useAuth } from "@/features/auth/auth.context";
-
-import { LoginPage } from "@/features/auth/LoginPage";
-import { DashboardPage } from "@/features/auth/DashboardPage";
+import { LoginPage } from "@/pages/LoginPage";
+import { DashboardPage } from "@/pages/DashboardPage";
+import { ResourcesPage } from "@/pages/ResourcesPage";
+import { UsersPage } from "@/pages/UsersPage";
 import { RequireAuth, RequirePermission } from "@/routes/RouteGuards";
-import { ResourcesPage } from "@/features/resources/ResourcesPage";
-import { UsersPage } from "@/features/users/UsersPage";
-
 import { ForbiddenPage } from "@/pages/ForbiddenPage";
 
 function LoadingScreen() {
@@ -90,10 +89,9 @@ function DashboardRoute() {
 
 function NotFoundPage() {
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-4 p-6">
+    <main className="flex min-h-svh flex-col items-center justify-center gap-4 p-6 text-center">
       <h1 className="text-2xl font-semibold">404 — Page Not Found</h1>
-
-      <Link to="/" className="text-sm underline">
+      <Link to="/" className="text-sm text-primary underline">
         Return to application
       </Link>
     </main>
@@ -126,16 +124,17 @@ export default function App() {
       <Route path="/login" element={<LoginRoute />} />
 
       <Route element={<RequireAuth />}>
-        <Route path="/dashboard" element={<DashboardRoute />} />
+        <Route element={<AppLayout />}>
+          <Route path="/dashboard" element={<DashboardRoute />} />
+          <Route path="/forbidden" element={<ForbiddenPage />} />
 
-        <Route path="/forbidden" element={<ForbiddenPage />} />
+          <Route element={<RequirePermission permission="resource:read" />}>
+            <Route path="/resources" element={<ResourcesPage />} />
+          </Route>
 
-        <Route element={<RequirePermission permission="resource:read" />}>
-          <Route path="/resources" element={<ResourcesPage />} />
-        </Route>
-
-        <Route element={<RequirePermission permission="user:manage" />}>
-          <Route path="/users" element={<UsersPage />} />
+          <Route element={<RequirePermission permission="user:manage" />}>
+            <Route path="/users" element={<UsersPage />} />
+          </Route>
         </Route>
       </Route>
 

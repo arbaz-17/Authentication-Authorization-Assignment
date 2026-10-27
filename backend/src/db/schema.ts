@@ -41,14 +41,12 @@ export const users = sqliteTable(
       .default(currentTimestamp),
   },
   (table) => [
-    uniqueIndex("users_email_unique").on(
-      sql`lower(${table.email})`
-    ),
+    uniqueIndex("users_email_unique").on(sql`lower(${table.email})`),
     check(
       "users_role_check",
-      sql`${table.role} IN ('admin', 'manager', 'viewer')`
+      sql`${table.role} IN ('admin', 'manager', 'viewer')`,
     ),
-  ]
+  ],
 );
 
 export const sessions = sqliteTable(
@@ -85,9 +83,7 @@ export const sessions = sqliteTable(
       mode: "timestamp_ms",
     }),
   },
-  (table) => [
-    index("sessions_user_id_idx").on(table.userId),
-  ]
+  (table) => [index("sessions_user_id_idx").on(table.userId)],
 );
 
 export const resources = sqliteTable(
@@ -119,9 +115,7 @@ export const resources = sqliteTable(
       .notNull()
       .default(currentTimestamp),
   },
-  (table) => [
-    index("resources_created_by_idx").on(table.createdBy),
-  ]
+  (table) => [index("resources_created_by_idx").on(table.createdBy)],
 );
 
 export type User = typeof users.$inferSelect;
