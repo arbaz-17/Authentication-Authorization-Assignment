@@ -6,7 +6,7 @@ A full-stack **Authentication & Authorization Module** developed as part of the 
 
 The application demonstrates secure user authentication, persistent sessions, JWT access-token refresh, protected routes, and Role-Based Access Control (RBAC).
 
-It features a responsive access control portal where **Admin, Manager, and Viewer** accounts have different permissions, enforced by the backend and reflected in the frontend interface.
+I implemented a dedicated backend to deeply understand how authentication works under the hood and how its core concepts interact.
 
 ## Features
 
