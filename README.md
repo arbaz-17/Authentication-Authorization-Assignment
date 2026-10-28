@@ -99,7 +99,6 @@ All backend endpoints use the `/api` prefix.
 | PATCH | `/resources/:id` | Update resource |
 | DELETE | `/resources/:id` | Delete resource |
 | GET | `/users` | List users (Admin only) |
-| GET | `/health` | API health check |
 
 ## Authentication Flow
 
@@ -110,8 +109,6 @@ All backend endpoints use the `/api` prefix.
 5. A rotating refresh credential is delivered through an HttpOnly cookie.
 6. On access-token expiry, eligible requests trigger authentication recovery.
 7. Logout clears local authentication state and revokes the backend session.
-
-Protected API endpoints validate both the access token and the active database session.
 
 ## Security Overview
 
